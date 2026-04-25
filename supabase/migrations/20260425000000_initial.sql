@@ -4,11 +4,15 @@
 create extension if not exists pgcrypto;
 
 create table if not exists public.brokers (
-  id uuid primary key references auth.users(id) on delete cascade,
+  id uuid primary key,
   name text not null,
   email text not null,
   created_at timestamptz not null default now()
 );
+
+-- Phase 1 uses permissive demo login, so broker ids are app-owned instead of auth.users ids.
+alter table public.brokers
+  drop constraint if exists brokers_id_fkey;
 
 alter table public.brokers enable row level security;
 

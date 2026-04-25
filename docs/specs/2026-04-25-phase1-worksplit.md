@@ -17,8 +17,8 @@ Phase 1 replaces the broker's manual commercial insurance intake call with a Tel
 | Owner | Workstream | Boundary | Done When |
 |---|---|---|---|
 | **Khem** | Telegram intake bot | Business-owner chat experience, intake sequencing, upload capture, resumable sessions | A business owner can open the deep link, complete ACORD Sections A–E, upload required photos/PDFs, resume after leaving, and trigger intake completion. |
-| **Pratik** | Broker dashboard + export | Broker-facing UI, client creation, dossier review, PDF export | A broker can log in, create a client, copy the Telegram link, view a completed dossier with score/uploads, and export the Phase 1 PDF package. |
-| **Haarish** | Shared platform, scoring, contracts, QA | Supabase schema, shared types, score engine, integration contracts, acceptance test path | Bot and dashboard use the same persisted contract; scores calculate from intake data; final demo flow passes end to end. |
+| **Pratik** | Broker dashboard + export | Broker-facing UI, demo login, client creation, dossier review, PDF export | A demo broker can enter any email/password, create a client, copy the Telegram link, view a completed dossier with score/uploads, and export the Phase 1 PDF package. |
+| **Haarish** | Shared platform, scoring, contracts, QA | Supabase schema, shared types, score engine, integration contracts, acceptance test path | Bot and dashboard use the same persisted contract; scores calculate from intake data; final demo flow passes end to end. Production auth/RLS tightening is deferred. |
 
 The split is intentionally equal by product responsibility, not by number of files. Khem owns the highest-risk external interaction surface, Pratik owns the broker workflow and export, and Haarish owns the data/scoring backbone plus integration quality.
 
@@ -26,15 +26,26 @@ The split is intentionally equal by product responsibility, not by number of fil
 
 ## Implementation Status — Apr 25, 2026
 
-**Haarish workstream started:**
+**Haarish workstream status:**
 - Supabase migration and shared TypeScript data contract are implemented locally.
 - Supabase migration has been applied to the shared project and verified for `brokers`, `clients`, `intake_data`, `uploads`, `readiness_scores`, and private `client-uploads`.
+- `brokers.id` is app-owned for Phase 1 demo login and no longer requires a matching Supabase Auth user.
+- Shared demo broker seeded: `be21add1-fd45-4505-b642-3dc690edf514` / `demo@districtcover.local`.
+- Supabase client/server/service helpers are implemented.
 - Score engine and score tests are implemented locally.
-- Repo-level `npm test` and `npm run typecheck` are available for the current TypeScript slice.
+- Score API and broker notification API helpers/routes are implemented.
+- Repo-level `npm test` and `npm run typecheck` pass for the current TypeScript slice.
 
 **Still pending before Khem/Pratik can fully integrate:**
-- Demo broker Auth user/profile.
-- Next.js app scaffold and Supabase client helpers.
+- Haarish still needs to add the single `markIntakeComplete(clientId)` helper that updates `clients.intake_status`, recalculates/upserts score, and triggers broker notification.
+- Next.js dashboard/bot surfaces from Pratik and Khem.
+- Final end-to-end QA after bot/dashboard integration.
+
+**Phase 1 auth decision:**
+- The broker dashboard uses permissive demo login. Any email/password should allow entry.
+- This is intentionally not production authentication.
+- The dashboard should use a shared/default demo broker context for Phase 1 data until real broker accounts are implemented.
+- Real Supabase Auth, broker account provisioning, broker-specific authorization, and strict per-broker RLS behavior move to Phase 2+.
 
 ---
 
@@ -78,7 +89,8 @@ The split is intentionally equal by product responsibility, not by number of fil
 ## Pratik — Broker Dashboard + Export
 
 **Owned Phase 1 requirements:**
-- Broker login and dashboard route protection.
+- Permissive demo login that accepts any email/password.
+- Dashboard route gate based on local demo session state, not production Supabase Auth.
 - Client list with business name, owner, intake status, readiness score, and updated timestamp.
 - New client form that creates a client and generates the unique Telegram link.
 - Copy/display flow for the Telegram deep link.
@@ -107,6 +119,7 @@ The split is intentionally equal by product responsibility, not by number of fil
 - Haarish-owned score details JSON shape.
 
 **Acceptance checks:**
+- Any email/password combination enters the broker dashboard in Phase 1.
 - Broker can create a new client without using the database dashboard manually.
 - The generated Telegram link includes the unique client token.
 - Client list separates pending, in-progress, and complete intake states.
@@ -118,7 +131,7 @@ The split is intentionally equal by product responsibility, not by number of fil
 ## Haarish — Shared Platform, Scoring, Contracts, QA
 
 **Owned Phase 1 requirements:**
-- Supabase schema, RLS policies, and private storage bucket setup.
+- Supabase schema and private storage bucket setup.
 - Shared DB types and server/client Supabase helpers.
 - ACORD field key contract used by bot, dashboard, score, and PDF export.
 - Readiness score engine for five Phase 1 dimensions.
@@ -140,6 +153,7 @@ The split is intentionally equal by product responsibility, not by number of fil
 
 **Interfaces Haarish owns:**
 - Table definitions for `brokers`, `clients`, `intake_data`, `uploads`, and `readiness_scores`.
+- Shared/default demo broker context for Phase 1.
 - Storage path convention for client uploads.
 - Question key naming convention and section routing.
 - Score details JSON shape.
@@ -159,7 +173,7 @@ Haarish owns this contract and should publish it before Khem and Pratik build ag
 
 | Section | Stored JSON Column | Question Keys |
 |---|---|---|
-| A — Applicant Identity | `intake_data.section_a` | `a_business_name`, `a_entity_type`, `a_fein`, `a_date_started`, `a_website`, `a_phone` |
+| A — Applicant Identity | `intake_data.section_a` | `a_business_name`, `a_entity_type`, `a_fein`, `a_date_started`, `a_website`, `a_phone`, `a_contact_name`, `a_contact_email` |
 | B — Premises | `intake_data.section_b` | `b_address`, `b_ownership`, `b_landlord`, `b_total_sqft`, `b_occupied_sqft`, `b_public_sqft`, `b_sublease`, `b_annual_revenue`, `b_fulltime_employees`, `b_parttime_employees`, `b_operations` |
 | C — General Information | `intake_data.section_c` | `c_subsidiary`, `c_safety_manual`, `c_hazardous_materials`, `c_other_insurance`, `c_prior_cancellation`, `c_discrimination_claims`, `c_arson`, `c_code_violations`, `c_bankruptcy`, `c_judgements`, `c_trust`, `c_foreign_operations`, `c_other_ventures`, `c_drones` |
 | D — Physical Property | `intake_data.section_d` | `d_roof_age`, `d_roof_inspection`, `d_electrical_panel`, `d_electrical_photo`, `d_sprinklers`, `d_sprinkler_certificate`, `d_alarm_system`, `d_alarm_contract`, `d_fire_extinguishers`, `d_extinguisher_photo` |
@@ -198,7 +212,7 @@ client-uploads/{client_id}/{question_key}/{upload_id}-{safe_file_name}
 
 **Acceptance checks:**
 - Database migration can be applied cleanly to a new Supabase project.
-- RLS allows a broker to see only their own clients and related data.
+- Phase 1 dashboard can read/write data through the shared/default demo broker context.
 - Score engine returns a 0–100 score with five dimension scores.
 - Score calculation uses Phase 1 inputs only and does not require SF public data.
 - One demo client completes the full path: dashboard client creation → Telegram intake → score calculation → dashboard dossier → PDF export.

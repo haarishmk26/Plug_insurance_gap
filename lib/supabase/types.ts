@@ -18,6 +18,8 @@ export type AcordQuestionKey =
   | 'a_date_started'
   | 'a_website'
   | 'a_phone'
+  | 'a_contact_name'
+  | 'a_contact_email'
   | 'b_address'
   | 'b_ownership'
   | 'b_landlord'

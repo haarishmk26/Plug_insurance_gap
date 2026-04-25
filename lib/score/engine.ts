@@ -24,6 +24,29 @@ export interface ScoreResult {
   score_details: Record<'documentation' | 'safety' | 'property' | 'claims' | 'neighborhood', ScoreDetail>
 }
 
+export const ACORD_125_REQUIRED_DOCUMENTATION_KEYS = [
+  'a_business_name',
+  'a_entity_type',
+  'a_fein',
+  'a_date_started',
+  'a_phone',
+  'a_contact_name',
+  'a_contact_email',
+  'b_address',
+  'b_ownership',
+  'b_total_sqft',
+  'b_occupied_sqft',
+  'b_public_sqft',
+  'b_annual_revenue',
+  'b_fulltime_employees',
+  'b_parttime_employees',
+  'b_operations',
+  'e_prior_carrier',
+  'e_prior_policy_number',
+  'e_prior_policy_dates',
+  'e_prior_premium',
+] as const
+
 function answers(data: IntakeData): Record<string, unknown> {
   return {
     ...data.section_a,
@@ -39,27 +62,9 @@ function isFilled(value: unknown): boolean {
 }
 
 function scoreDocumentation(a: Record<string, unknown>): { score: number; detail: ScoreDetail } {
-  // Documentation Completeness: 25 pts. Source: PRD Section 9, incomplete ACORD submissions are the
-  // #1 cause of underwriting delays; District Cover framing is that businesses are misunderstood.
-  const required = [
-    'a_business_name',
-    'a_entity_type',
-    'a_fein',
-    'a_date_started',
-    'a_phone',
-    'b_address',
-    'b_ownership',
-    'b_total_sqft',
-    'b_occupied_sqft',
-    'b_public_sqft',
-    'b_annual_revenue',
-    'b_fulltime_employees',
-    'b_operations',
-    'e_prior_carrier',
-    'e_prior_policy_number',
-    'e_prior_policy_dates',
-    'e_prior_premium',
-  ]
+  // Documentation Completeness: 25 pts. Source: ACORD 125 (2016/03) applicant,
+  // premises, and prior carrier fields plus PRD Section 9's underwriting-delay rationale.
+  const required = ACORD_125_REQUIRED_DOCUMENTATION_KEYS
   const filled = required.filter((key) => isFilled(a[key])).length
   const score = Math.round((filled / required.length) * 25)
 
