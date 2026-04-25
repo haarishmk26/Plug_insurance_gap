@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'District Cover',
-  description: 'Insurance Readiness Platform',
+  title: 'Rova',
+  description: 'Broker dashboard for District Cover insurance readiness intake.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

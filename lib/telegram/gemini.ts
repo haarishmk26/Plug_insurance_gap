@@ -1,9 +1,20 @@
 import OpenAI from 'openai'
 
-const nebius = new OpenAI({
-  apiKey: process.env.NEBIUS_API_KEY!,
-  baseURL: 'https://api.studio.nebius.com/v1/',
-})
+let nebius: OpenAI | null = null
+
+function getNebiusClient() {
+  const apiKey = process.env.NEBIUS_API_KEY
+  if (!apiKey) {
+    throw new Error('NEBIUS_API_KEY is required to run Telegram intake chat.')
+  }
+
+  nebius ??= new OpenAI({
+    apiKey,
+    baseURL: 'https://api.studio.nebius.com/v1/',
+  })
+
+  return nebius
+}
 
 // All required ACORD fields to collect
 const REQUIRED_FIELDS = [
@@ -119,7 +130,7 @@ export async function geminiChat(
     { role: 'user', content: userMessage },
   ]
 
-  const response = await nebius.chat.completions.create({
+  const response = await getNebiusClient().chat.completions.create({
     model: 'meta-llama/Llama-3.3-70B-Instruct',
     messages,
     response_format: { type: 'json_object' },

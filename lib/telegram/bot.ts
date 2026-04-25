@@ -134,7 +134,6 @@ bot.on('message', async (ctx) => {
       .from('client-uploads')
       .upload(storagePath, buffer, { upsert: true })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (supabase.from('uploads') as any).insert({
       client_id: client.id,
       storage_path: storagePath,
