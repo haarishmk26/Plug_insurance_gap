@@ -24,6 +24,20 @@ The split is intentionally equal by product responsibility, not by number of fil
 
 ---
 
+## Implementation Status — Apr 25, 2026
+
+**Haarish workstream started:**
+- Supabase migration and shared TypeScript data contract are implemented locally.
+- Supabase migration has been applied to the shared project and verified for `brokers`, `clients`, `intake_data`, `uploads`, `readiness_scores`, and private `client-uploads`.
+- Score engine and score tests are implemented locally.
+- Repo-level `npm test` and `npm run typecheck` are available for the current TypeScript slice.
+
+**Still pending before Khem/Pratik can fully integrate:**
+- Demo broker Auth user/profile.
+- Next.js app scaffold and Supabase client helpers.
+
+---
+
 ## Khem — Telegram Intake Bot
 
 **Owned Phase 1 requirements:**
