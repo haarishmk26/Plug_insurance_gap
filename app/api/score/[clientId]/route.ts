@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest } from 'next/server'
 
-import { handleScoreRequest, type ScoreRouteSupabaseClient } from '../../../../lib/api/score-route.js'
-import type { Database } from '../../../../lib/supabase/types.js'
+import { handleScoreRequest, type ScoreRouteSupabaseClient } from '../../../../lib/api/score-route'
+import type { Database } from '../../../../lib/supabase/types'
 
 type ScoreRouteContext = {
   params: Promise<{ clientId: string }> | { clientId: string }
@@ -21,7 +21,7 @@ function createServiceClient(): ScoreRouteSupabaseClient {
       persistSession: false,
       autoRefreshToken: false,
     },
-  }) as ScoreRouteSupabaseClient
+  }) as unknown as ScoreRouteSupabaseClient
 }
 
 export async function POST(request: NextRequest, context: ScoreRouteContext) {

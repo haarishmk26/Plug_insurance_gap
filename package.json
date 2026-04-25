@@ -2,16 +2,23 @@
   "name": "plug-insurance-gap",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
     "db:migrate": "node scripts/apply-supabase-migration.mjs",
     "test": "node --test --import tsx tests/**/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@react-pdf/renderer": "^3",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.1",
+    "grammy": "^1",
     "next": "^16.2.4",
+    "openai": "^6.34.0",
     "pg": "^8.16.3",
     "react": "^19.2.5",
     "react-dom": "^19.2.5"
@@ -20,6 +27,11 @@
     "@types/node": "^20.15.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.29",
+    "postcss": "^8",
+    "tailwindcss": "^3",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }

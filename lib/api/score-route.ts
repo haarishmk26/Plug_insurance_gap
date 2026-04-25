@@ -1,4 +1,4 @@
-import { calculateScore, type IntakeData, type ScoreResult } from '../score/engine.js'
+import { calculateScore, type IntakeData, type ScoreResult } from '../score/engine'
 
 type IntakeDataQuery = {
   select(columns: string): {

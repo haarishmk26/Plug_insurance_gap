@@ -4,8 +4,8 @@ import {
   handleNotifyRequest,
   type NotifyResult,
   type NotifySupabaseClient,
-} from '../../../../lib/api/notify-route.js'
-import type { Database } from '../../../../lib/supabase/types.js'
+} from '../../../../lib/api/notify-route'
+import type { Database } from '../../../../lib/supabase/types'
 
 type NotifyRouteContext = {
   params: { clientId: string } | Promise<{ clientId: string }>

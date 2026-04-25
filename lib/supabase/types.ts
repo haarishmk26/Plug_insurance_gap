@@ -93,7 +93,12 @@ export interface IntakeData {
   section_d: IntakeAnswers
   section_e: IntakeAnswers
   current_question_key: AcordQuestionKey | null
+  conversation_history: Json[]
   updated_at: string
+}
+
+export interface ClientWithIntake extends Client {
+  intake_data: IntakeData[]
 }
 
 export interface Upload {
@@ -179,10 +184,11 @@ export interface Database {
           section_c?: IntakeAnswers
           section_d?: IntakeAnswers
           section_e?: IntakeAnswers
-          current_question_key?: AcordQuestionKey | null
+          current_question_key?: string | null
+          conversation_history?: Json[]
           updated_at?: string
         }
-        Update: Partial<Omit<IntakeData, 'id' | 'client_id'>>
+        Update: Partial<Omit<IntakeData, 'id' | 'client_id'>> & { current_question_key?: string | null }
       }
       uploads: {
         Row: Upload
