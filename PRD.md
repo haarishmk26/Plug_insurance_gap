@@ -595,6 +595,22 @@ What the broker generates and submits to District Cover (or another MGA):
 - [ ] PDF export: ACORD field summary + uploaded documents + score
 - [ ] Broker receives notification when intake is complete
 
+**Phase 1 Team Partition:**
+
+Phase 1 should be built as three equal workstreams with clean interfaces between them. Each owner is responsible for shipping a demoable slice, writing/maintaining tests for that slice, and coordinating only through the shared schema/contracts documented in `docs/specs/2026-04-25-phase1-worksplit.md`.
+
+| Owner | Workstream | Phase 1 Responsibility | Primary Deliverables |
+|---|---|---|---|
+| **Khem** | Telegram intake bot | Own the business-owner intake experience end to end. This includes unique deep link handling, resumable Telegram sessions, ACORD Sections A–E question flow, photo/PDF collection, upload labeling, and the "intake complete" handoff event. | `app/api/telegram/route.ts`, `lib/telegram/bot.ts`, `lib/telegram/questions.ts`, `lib/telegram/session.ts`, bot-facing upload handling |
+| **Pratik** | Broker dashboard + export | Own the broker-facing review experience. This includes broker login/dashboard shell, client list, new client form, Telegram link display/copy flow, client dossier view, readiness score display, upload list display, and Phase 1 PDF export. | `app/(auth)`, `app/(dashboard)`, dashboard components, `app/api/export/[clientId]/route.ts`, `lib/pdf/dossier-pdf.tsx` |
+| **Haarish** | Shared platform, data model, scoring, integration QA | Own the shared product backbone used by both other workstreams. This includes Supabase schema, RLS/storage setup, generated/shared DB types, ACORD field contract, readiness score engine, intake completion contract, broker notification contract, final PRD/plan alignment, and end-to-end acceptance testing. | `supabase/migrations`, `lib/supabase`, `lib/score/engine.ts`, shared field/contract docs, final integration QA |
+
+**Cross-Workstream Contract:**
+- Khem writes intake answers into `intake_data` and uploads into `uploads`.
+- Haarish owns the exact DB/schema and score contract those writes must follow.
+- Pratik reads from the same contract to render the broker dossier and export PDF.
+- Phase 1 is not complete until one seeded/demo client can move through: broker creates client → Khem's bot completes intake → Haarish's score engine calculates score → Pratik's dashboard displays/export the dossier.
+
 **Out of Scope for Phase 1:**
 - ❌ Advisory Q&A
 - ❌ Business owner score/checklist view via bot
@@ -676,6 +692,7 @@ What the broker generates and submits to District Cover (or another MGA):
 | District Cover structure | Licensed surplus lines broker + program admin. Carrier: Vantage Risk Specialty Insurance Company. | Apr 2026 |
 | Geographic scope | San Francisco only — Phase 1 | Apr 2026 |
 | Group insurance | Parked — Phase 4. Questions logged in Phase 4 section. | Apr 2026 |
+| Phase 1 team partition | Khem owns Telegram intake bot; Pratik owns broker dashboard + export; Haarish owns shared schema, scoring, integration contracts, and final QA. | Apr 2026 |
 
 ---
 
