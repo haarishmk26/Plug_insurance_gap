@@ -1,36 +1,41 @@
-import { createServiceClient } from '@/lib/supabase/server'
-import { calculateScore } from '@/lib/score/engine'
+import { createClient } from '@supabase/supabase-js'
 import { NextRequest } from 'next/server'
-import type { IntakeData } from '@/lib/supabase/types'
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { clientId: string } }
-) {
-  const secret = req.headers.get('x-internal-secret')
-  if (secret !== process.env.TELEGRAM_WEBHOOK_SECRET) {
-    return new Response('Unauthorized', { status: 401 })
+import { handleScoreRequest, type ScoreRouteSupabaseClient } from '../../../../lib/api/score-route.js'
+import type { Database } from '../../../../lib/supabase/types.js'
+
+type ScoreRouteContext = {
+  params: Promise<{ clientId: string }> | { clientId: string }
+}
+
+function createServiceClient(): ScoreRouteSupabaseClient {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error('Supabase service credentials are not configured')
   }
 
-  const supabase = createServiceClient()
-  const { data: intakeData } = await supabase
-    .from('intake_data')
-    .select('*')
-    .eq('client_id', params.clientId)
-    .single()
+  return createClient<Database>(supabaseUrl, serviceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  }) as ScoreRouteSupabaseClient
+}
 
-  if (!intakeData) {
-    return new Response('Intake data not found', { status: 404 })
-  }
+export async function POST(request: NextRequest, context: ScoreRouteContext) {
+  const { clientId } = await context.params
 
-  const result = calculateScore(intakeData as IntakeData)
-
-  await supabase
-    .from('readiness_scores')
-    .upsert({
-      client_id: params.clientId,
-      ...result,
+  try {
+    return await handleScoreRequest({
+      clientId,
+      internalSecret: request.headers.get('x-internal-secret'),
+      expectedSecret: process.env.TELEGRAM_WEBHOOK_SECRET,
+      supabase: createServiceClient(),
     })
-
-  return Response.json(result)
+  } catch (error) {
+    console.error('Failed to calculate readiness score', error)
+    return Response.json({ error: 'Failed to calculate readiness score' }, { status: 500 })
+  }
 }
