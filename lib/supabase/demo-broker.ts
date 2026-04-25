@@ -1,4 +1,4 @@
-import type { Database } from './types.js'
+import type { Database } from './types'
 
 type BrokerInsert = Database['public']['Tables']['brokers']['Insert']
 type ClientInsert = Database['public']['Tables']['clients']['Insert']

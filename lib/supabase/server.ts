@@ -1,8 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers.js'
+import { cookies } from 'next/headers'
 
-import type { Database } from './types.js'
+import type { Database } from './types'
 
 function requireEnv(name: string): string {
   const value = process.env[name]
@@ -23,10 +23,10 @@ export async function createClient() {
         getAll() {
           return cookieStore.getAll()
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: { name: string; value: string; options?: object }[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options)
+              cookieStore.set(name, value, options as Parameters<typeof cookieStore.set>[2])
             })
           } catch {
             // Server Components cannot mutate cookies. Route handlers and actions can.
@@ -53,3 +53,12 @@ export function createServiceClient() {
 }
 
 export const createServiceRoleClient = createServiceClient
+
+// Untyped variant for dynamic JSONB operations (Telegram bot session functions)
+export function createRawServiceClient() {
+  return createSupabaseClient(
+    requireEnv('NEXT_PUBLIC_SUPABASE_URL'),
+    requireEnv('SUPABASE_SERVICE_ROLE_KEY'),
+    { auth: { autoRefreshToken: false, persistSession: false } },
+  )
+}

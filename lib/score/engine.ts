@@ -1,4 +1,4 @@
-import type { IntakeData as SupabaseIntakeData } from '../supabase/types.js'
+import type { IntakeData as SupabaseIntakeData } from '../supabase/types'
 
 export type IntakeData = Pick<
   SupabaseIntakeData,

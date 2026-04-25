@@ -1,4 +1,5 @@
-import { createServiceClient } from '@/lib/supabase/server'
+import { createRawServiceClient } from '@/lib/supabase/server'
+import type { ClientWithIntake } from '@/lib/supabase/types'
 import type { ConversationTurn } from './gemini'
 
 type SectionMap = {
@@ -36,7 +37,7 @@ export async function saveExtractedFields(
 ) {
   if (Object.keys(fields).length === 0) return
 
-  const supabase = createServiceClient()
+  const supabase = createRawServiceClient()
 
   // Group new values by section column
   const grouped: Partial<Record<keyof SectionMap, Record<string, string>>> = {}
@@ -61,7 +62,8 @@ export async function saveExtractedFields(
     updates[col] = { ...current, ...grouped[col] }
   }
 
-  await supabase.from('intake_data').upsert(updates)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await supabase.from('intake_data').upsert(updates as any)
 }
 
 // Append turns to conversation_history in Supabase
@@ -69,7 +71,7 @@ export async function appendConversationHistory(
   clientId: string,
   newTurns: ConversationTurn[]
 ) {
-  const supabase = createServiceClient()
+  const supabase = createRawServiceClient()
   const { data: existing } = await supabase
     .from('intake_data')
     .select('conversation_history')
@@ -84,7 +86,7 @@ export async function appendConversationHistory(
 
 // Load conversation history for Gemini context
 export async function getConversationHistory(clientId: string): Promise<ConversationTurn[]> {
-  const supabase = createServiceClient()
+  const supabase = createRawServiceClient()
   const { data } = await supabase
     .from('intake_data')
     .select('conversation_history')
@@ -100,7 +102,7 @@ export async function saveAnswer(
   answer: string,
   nextQuestionKey: string | null
 ) {
-  const supabase = createServiceClient()
+  const supabase = createRawServiceClient()
   const col = sectionColumn(questionKey)
 
   const { data: existing } = await supabase
@@ -111,41 +113,40 @@ export async function saveAnswer(
 
   const currentSection = (existing?.[col as keyof typeof existing] ?? {}) as Record<string, unknown>
 
-  await supabase
-    .from('intake_data')
-    .upsert({
-      client_id: clientId,
-      [col]: { ...currentSection, [questionKey]: answer },
-      current_question_key: nextQuestionKey,
-    })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await supabase.from('intake_data').upsert({
+    client_id: clientId,
+    [col]: { ...currentSection, [questionKey]: answer },
+    current_question_key: nextQuestionKey,
+  } as any)
 }
 
 // Resolve a client by their unique deep-link token
-export async function getClientByToken(token: string) {
-  const supabase = createServiceClient()
+export async function getClientByToken(token: string): Promise<ClientWithIntake | null> {
+  const supabase = createRawServiceClient()
   const { data } = await supabase
     .from('clients')
     .select('*, intake_data(*)')
     .eq('intake_token', token)
     .single()
-  return data
+  return data as ClientWithIntake | null
 }
 
 // Associate the Telegram chat_id with the client on first /start
 export async function linkChatId(clientId: string, chatId: number) {
-  const supabase = createServiceClient()
-  await supabase
-    .from('clients')
+  const supabase = createRawServiceClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase.from('clients') as any)
     .update({ telegram_chat_id: chatId, intake_status: 'in_progress' })
     .eq('id', clientId)
 }
 
 // Called after Gemini signals is_complete — marks status and fires score
 export async function markIntakeComplete(clientId: string) {
-  const supabase = createServiceClient()
+  const supabase = createRawServiceClient()
 
-  await supabase
-    .from('clients')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase.from('clients') as any)
     .update({ intake_status: 'complete' })
     .eq('id', clientId)
 

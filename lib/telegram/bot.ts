@@ -1,5 +1,6 @@
 import { Bot, webhookCallback } from 'grammy'
-import { createServiceClient } from '@/lib/supabase/server'
+import { createRawServiceClient } from '@/lib/supabase/server'
+import type { ClientWithIntake } from '@/lib/supabase/types'
 import {
   getClientByToken,
   linkChatId,
@@ -40,10 +41,10 @@ bot.command('start', async (ctx) => {
 
   await linkChatId(client.id, ctx.chat.id)
 
-  const supabase = createServiceClient()
+  const supabase = createRawServiceClient()
   await supabase.from('intake_data').upsert({
     client_id: client.id,
-    current_question_key: 'gemini_active',
+    current_question_key: 'gemini_active' as string,
   })
 
   const greeting =
@@ -86,13 +87,13 @@ bot.on('message', async (ctx) => {
   if (ctx.message.text?.startsWith('/')) return
 
   const chatId = ctx.chat.id
-  const supabase = createServiceClient()
+  const supabase = createRawServiceClient()
 
   const { data: client } = await supabase
     .from('clients')
     .select('*, intake_data(*)')
     .eq('telegram_chat_id', chatId)
-    .single()
+    .single() as { data: ClientWithIntake | null; error: unknown }
 
   if (!client) {
     await ctx.reply("Please use your broker's invite link to get started.")
@@ -133,7 +134,8 @@ bot.on('message', async (ctx) => {
       .from('client-uploads')
       .upload(storagePath, buffer, { upsert: true })
 
-    await supabase.from('uploads').insert({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase.from('uploads') as any).insert({
       client_id: client.id,
       storage_path: storagePath,
       file_name: `${uploadKey}.${ext}`,
