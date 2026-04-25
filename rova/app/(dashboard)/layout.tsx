@@ -7,17 +7,24 @@ import {
   Plus,
   ShieldCheck,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { LogoutButton } from "@/components/logout-button";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/clients/new", label: "New client", icon: Plus },
 ];
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <div className="min-h-screen bg-stone-50 text-slate-950">
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-slate-200 bg-white px-5 py-6 lg:block">
@@ -76,13 +83,21 @@ export default function DashboardLayout({
                 Insurance readiness workspace
               </p>
             </div>
-            <Link
-              href="/clients/new"
-              className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-            >
-              <Plus className="size-4" aria-hidden="true" />
-              New client
-            </Link>
+            <div className="flex items-center gap-2">
+              {user && (
+                <span className="hidden text-xs text-slate-500 sm:block">
+                  {user.email}
+                </span>
+              )}
+              <LogoutButton />
+              <Link
+                href="/clients/new"
+                className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+              >
+                <Plus className="size-4" aria-hidden="true" />
+                New client
+              </Link>
+            </div>
           </div>
         </header>
         <main className="px-5 py-6 lg:px-8">{children}</main>
