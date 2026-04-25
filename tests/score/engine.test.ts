@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
-import { calculateScore, getScoreTier, type IntakeData } from '../../lib/score/engine.js'
+import {
+  ACORD_125_REQUIRED_DOCUMENTATION_KEYS,
+  calculateScore,
+  getScoreTier,
+  type IntakeData,
+} from '../../lib/score/engine.js'
 
 function intake(sections: Partial<IntakeData> = {}): IntakeData {
   return {
@@ -21,6 +26,8 @@ const completeIntake = intake({
     a_fein: '12-3456789',
     a_date_started: '2018-02-01',
     a_phone: '415-555-0100',
+    a_contact_name: 'Mina Patel',
+    a_contact_email: 'mina@goldengatebakery.example',
   },
   section_b: {
     b_address: '123 Market St, San Francisco, CA',
@@ -30,6 +37,7 @@ const completeIntake = intake({
     b_public_sqft: 1200,
     b_annual_revenue: 850000,
     b_fulltime_employees: 12,
+    b_parttime_employees: 4,
     b_operations: 'Retail bakery and cafe',
   },
   section_c: {
@@ -72,6 +80,31 @@ describe('score engine', () => {
       'neighborhood',
       'property',
       'safety',
+    ])
+  })
+
+  it('uses the ACORD 125 core intake fields as the documentation completeness contract', () => {
+    assert.deepEqual(ACORD_125_REQUIRED_DOCUMENTATION_KEYS, [
+      'a_business_name',
+      'a_entity_type',
+      'a_fein',
+      'a_date_started',
+      'a_phone',
+      'a_contact_name',
+      'a_contact_email',
+      'b_address',
+      'b_ownership',
+      'b_total_sqft',
+      'b_occupied_sqft',
+      'b_public_sqft',
+      'b_annual_revenue',
+      'b_fulltime_employees',
+      'b_parttime_employees',
+      'b_operations',
+      'e_prior_carrier',
+      'e_prior_policy_number',
+      'e_prior_policy_dates',
+      'e_prior_premium',
     ])
   })
 

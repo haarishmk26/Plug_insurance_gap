@@ -409,7 +409,7 @@ Every bot question maps to an ACORD 125 field or a direct underwriting purpose. 
 | Date business started | Date Business Started | Underwriting history baseline |
 | Website | Website Address | Secondary verification of operations |
 | Business phone | Business Phone # | Contact record |
-| Primary contact name + email | Contact Information | Broker communication |
+| Primary contact name + email | Contact Name / Primary E-mail Address | Broker communication and the ACORD contact block |
 
 ---
 
@@ -588,7 +588,7 @@ What the broker generates and submits to District Cover (or another MGA):
 - [ ] Bot walks through Sections A–E conversationally, one question at a time
 - [ ] Bot accepts photo and PDF uploads, labels and stores them
 - [ ] Session persistence — owner can exit and resume
-- [ ] Broker dashboard: login, client list, new client form, Telegram deep link generation
+- [ ] Broker dashboard: demo login accepts any email/password, client list, new client form, Telegram deep link generation
 - [ ] Broker dashboard: client detail view with all ACORD fields and uploaded documents
 - [ ] Score engine: calculates 5-dimension score from intake data (Sections A–E, no SF public data yet)
 - [ ] Score visible in broker dashboard
@@ -602,12 +602,19 @@ Phase 1 should be built as three equal workstreams with clean interfaces between
 | Owner | Workstream | Phase 1 Responsibility | Primary Deliverables |
 |---|---|---|---|
 | **Khem** | Telegram intake bot | Own the business-owner intake experience end to end. This includes unique deep link handling, resumable Telegram sessions, ACORD Sections A–E question flow, photo/PDF collection, upload labeling, and the "intake complete" handoff event. | `app/api/telegram/route.ts`, `lib/telegram/bot.ts`, `lib/telegram/questions.ts`, `lib/telegram/session.ts`, bot-facing upload handling |
-| **Pratik** | Broker dashboard + export | Own the broker-facing review experience. This includes broker login/dashboard shell, client list, new client form, Telegram link display/copy flow, client dossier view, readiness score display, upload list display, and Phase 1 PDF export. | `app/(auth)`, `app/(dashboard)`, dashboard components, `app/api/export/[clientId]/route.ts`, `lib/pdf/dossier-pdf.tsx` |
-| **Haarish** | Shared platform, data model, scoring, integration QA | Own the shared product backbone used by both other workstreams. This includes Supabase schema, RLS/storage setup, generated/shared DB types, ACORD field contract, readiness score engine, intake completion contract, broker notification contract, final PRD/plan alignment, and end-to-end acceptance testing. | `supabase/migrations`, `lib/supabase`, `lib/score/engine.ts`, shared field/contract docs, final integration QA |
+| **Pratik** | Broker dashboard + export | Own the broker-facing review experience. This includes demo login/dashboard shell, client list, new client form, Telegram link display/copy flow, client dossier view, readiness score display, upload list display, and Phase 1 PDF export. Demo login accepts any email/password for hackathon speed. | `app/(auth)`, `app/(dashboard)`, dashboard components, `app/api/export/[clientId]/route.ts`, `lib/pdf/dossier-pdf.tsx` |
+| **Haarish** | Shared platform, data model, scoring, integration QA | Own the shared product backbone used by both other workstreams. This includes Supabase schema/storage setup, generated/shared DB types, ACORD field contract, readiness score engine, intake completion contract, broker notification contract, final PRD/plan alignment, and end-to-end acceptance testing. Production auth/RLS tightening is Phase 2+. | `supabase/migrations`, `lib/supabase`, `lib/score/engine.ts`, shared field/contract docs, final integration QA |
+
+**Phase 1 Auth Decision:**
+- Phase 1 dashboard login is a demo gate only. Any email/password may enter the dashboard.
+- The entered email can be stored/displayed as the demo broker identity, but it is not a security boundary.
+- Phase 1 data access may use a shared/demo broker context to keep the hackathon build moving.
+- Real broker authentication, account provisioning, broker-specific authorization, and production-grade RLS enforcement are deferred to Phase 2+.
 
 **Cross-Workstream Contract:**
 - Khem writes intake answers into `intake_data` and uploads into `uploads`.
 - Haarish owns the exact DB/schema and score contract those writes must follow.
+- Haarish's remaining Phase 1 handoff task is the shared `markIntakeComplete(clientId)` helper that sets the client complete, recalculates/upserts the readiness score, and triggers broker notification.
 - Pratik reads from the same contract to render the broker dossier and export PDF.
 - Phase 1 is not complete until one seeded/demo client can move through: broker creates client → Khem's bot completes intake → Haarish's score engine calculates score → Pratik's dashboard displays/export the dossier.
 
@@ -619,6 +626,7 @@ Phase 1 should be built as three equal workstreams with clean interfaces between
 - ❌ Submission lifecycle tracking / Kanban
 - ❌ MGA routing from dashboard
 - ❌ Insly integration
+- ❌ Production broker authentication / authorization
 
 ---
 
@@ -681,6 +689,7 @@ Phase 1 should be built as three equal workstreams with clean interfaces between
 | Does the broker get cut out? | No. Broker reviews and submits. Product makes them faster. | Apr 2026 |
 | Language support | English only | Apr 2026 |
 | Broker portal type | Web dashboard (broker logs in) | Apr 2026 |
+| Phase 1 broker login | Demo login accepts any email/password. Real broker authentication and authorization move to Phase 2+. | Apr 2026 |
 | Business owner score visibility | Yes — both broker (dashboard) and owner (bot) see score and checklist | Apr 2026 |
 | Checklist type | Living document — updates as items are completed and verified | Apr 2026 |
 | Insly integration | Phase 1: PDF export. Phase 2: mock UI. Phase 3: live API. | Apr 2026 |
