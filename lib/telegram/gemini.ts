@@ -17,6 +17,9 @@ const REQUIRED_FIELDS = [
   'e_prior_carrier', 'e_prior_policy_number', 'e_prior_policy_dates', 'e_prior_premium', 'e_claims',
 ]
 
+// The 4 fields we collect in demo mode — enough to show the value without the full flow
+const DEMO_FIELDS = ['b_operations', 'b_annual_revenue', 'b_fulltime_employees', 'e_claims']
+
 const FIELD_DESCRIPTIONS: Record<string, string> = {
   a_business_name: 'Full legal business name (and DBA if any)',
   a_entity_type: 'Entity type — one of: LLC, Corporation, Sole Proprietorship, Partnership, Other',
@@ -67,33 +70,50 @@ export type ConversationTurn = { role: 'user' | 'model'; text: string }
 function buildSystemPrompt(
   ownerName: string,
   businessName: string,
-  collected: Record<string, unknown>
+  collected: Record<string, unknown>,
+  isDemoMode: boolean
 ): string {
-  const missing = REQUIRED_FIELDS.filter(k => !collected[k] || collected[k] === 'skipped')
   const collectedLines = Object.entries(collected)
     .filter(([, v]) => v && v !== 'skipped')
     .map(([k, v]) => `  ${k}: ${v}`)
     .join('\n')
 
+  const qaRule = `
+ANSWERING INSURANCE QUESTIONS: If the user asks any insurance-related question mid-conversation — such as "would I be covered if X happens?", "what does liability insurance cover?", "why do you need my FEIN?", "what's a BOP?", or any scenario question — answer it helpfully in 2–3 plain-English sentences first. Then continue with the next intake question on a new paragraph. Capture any intake fields the message incidentally contains.`
+
+  const fieldList = isDemoMode ? DEMO_FIELDS : REQUIRED_FIELDS
+  const missing = fieldList.filter(k => !collected[k] || collected[k] === 'skipped')
+  const nextField = missing[0]
+
+  const alreadyCollectedSection = collectedLines
+    ? `ALREADY COLLECTED — do NOT ask about these again:\n${collectedLines}`
+    : `ALREADY COLLECTED: (none yet)`
+
+  const nextFieldSection = nextField
+    ? `NEXT FIELD TO ASK ABOUT:\n  ${nextField}: ${FIELD_DESCRIPTIONS[nextField]}\n\nDo NOT ask about any other field until this one is answered.`
+    : `All fields collected — wrap up warmly now. Mention that a broker will be in touch with a personalized link for the full application.`
+
+  const completionRule = isDemoMode
+    ? `- When all fields are collected, set is_complete to true and write a natural closing message. Mention the broker will send a personalized link for the full application.`
+    : `- When all fields are collected, set is_complete to true`
+
   return `You are an insurance intake assistant for District Cover, helping San Francisco small business owners apply for commercial insurance.
 
 You are speaking with ${ownerName}, owner of ${businessName}.
 
-YOUR GOAL: Collect all required fields through natural, warm conversation — one topic at a time. Do not sound like a form. Be friendly and plain-English. When insurance terms come up, briefly explain them in parentheses.
+${alreadyCollectedSection}
 
-FIELDS STILL NEEDED (${missing.length} remaining):
-${missing.map(k => `  ${k}: ${FIELD_DESCRIPTIONS[k]}`).join('\n')}
-
-ALREADY COLLECTED:
-${collectedLines || '  (none yet)'}
+${nextFieldSection}
 
 RULES:
-- Ask about one topic at a time but be conversational, not robotic
-- If the user gives multiple facts in one message, capture all of them in "fields"
+- Acknowledge the user's last answer briefly before asking the next question
+- If the user gives multiple facts in one message, extract all of them in "fields", then ask about the NEXT missing field
 - For yes/no fields, normalize the value to exactly "yes" or "no"
-- Do not ask about document/photo uploads — those are handled separately
-- When all fields above are collected, set is_complete to true
+- Do not ask about document/photo uploads
+- Be friendly and plain-English — not like a form
+${completionRule}
 - Be non-judgmental about prior claims, cancellations, or violations
+${qaRule}
 
 RESPONSE FORMAT — always return valid JSON, no markdown, no code fences:
 {
@@ -108,10 +128,11 @@ export async function geminiChat(
   ownerName: string,
   businessName: string,
   collected: Record<string, unknown>,
-  history: ConversationTurn[]
+  history: ConversationTurn[],
+  isDemoMode = false
 ): Promise<GeminiResponse> {
   const messages: OpenAI.ChatCompletionMessageParam[] = [
-    { role: 'system', content: buildSystemPrompt(ownerName, businessName, collected) },
+    { role: 'system', content: buildSystemPrompt(ownerName, businessName, collected, isDemoMode) },
     ...history.map(turn => ({
       role: (turn.role === 'model' ? 'assistant' : 'user') as 'assistant' | 'user',
       content: turn.text,

@@ -47,13 +47,19 @@ bot.command('start', async (ctx) => {
     current_question_key: 'gemini_active' as string,
   })
 
-  const greeting =
-    `Hi ${client.owner_name}! 👋\n\n` +
-    `I'm here to help ${client.business_name} get ready for commercial insurance.\n\n` +
-    `I'll ask you about 35 short questions through a quick conversation — ` +
-    `you can stop and come back anytime, I'll save your progress.\n\n` +
-    `Your answers help your broker submit a complete application that tells your full story, ` +
-    `not just your ZIP code.\n\nLet's get started!`
+  const isDemoMode = client.intake_token.includes('demo')
+
+  const greeting = isDemoMode
+    ? `Hi ${client.owner_name}! 👋\n\n` +
+      `I'm here to help ${client.business_name} get ready for commercial insurance.\n\n` +
+      `I'll ask you a few quick questions — your answers help your broker put together ` +
+      `the right coverage for your business.\n\nLet's get started!`
+    : `Hi ${client.owner_name}! 👋\n\n` +
+      `I'm here to help ${client.business_name} get ready for commercial insurance.\n\n` +
+      `I'll ask you about 35 short questions through a quick conversation — ` +
+      `you can stop and come back anytime, I'll save your progress.\n\n` +
+      `Your answers help your broker submit a complete application that tells your full story, ` +
+      `not just your ZIP code.\n\nLet's get started!`
 
   await ctx.reply(greeting)
 
@@ -66,7 +72,8 @@ bot.command('start', async (ctx) => {
     client.owner_name,
     client.business_name,
     collected,
-    []
+    [],
+    isDemoMode
   )
 
   await ctx.reply(gemini.message)
@@ -151,6 +158,7 @@ bot.on('message', async (ctx) => {
   // Text message — send to Gemini
   const userText = ctx.message.text ?? ''
   const history = await getConversationHistory(client.id)
+  const isDemoMode = client.intake_token.includes('demo')
 
   let gemini
   try {
@@ -159,7 +167,8 @@ bot.on('message', async (ctx) => {
       client.owner_name,
       client.business_name,
       collected,
-      history
+      history,
+      isDemoMode
     )
   } catch (err) {
     console.error('Gemini error:', err)
@@ -180,12 +189,14 @@ bot.on('message', async (ctx) => {
   await ctx.reply(gemini.message)
 
   if (gemini.is_complete) {
-    await ctx.reply(
-      `That's everything, ${client.owner_name}! 🎉\n\n` +
-      `Your intake is complete. Your broker has been notified and will review your profile shortly.\n\n` +
-      `If you have questions in the meantime, feel free to message here.`
-    )
-    await markIntakeComplete(client.id)
+    if (!isDemoMode) {
+      await ctx.reply(
+        `That's everything, ${client.owner_name}! 🎉\n\n` +
+        `Your intake is complete. Your broker has been notified and will review your profile shortly.\n\n` +
+        `If you have questions in the meantime, feel free to message here.`
+      )
+      await markIntakeComplete(client.id)
+    }
   }
 })
 
