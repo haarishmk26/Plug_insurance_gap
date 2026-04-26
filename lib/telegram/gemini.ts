@@ -108,7 +108,18 @@ export function getCurrentDemoField(collected: Record<string, unknown>): typeof 
 
 export function isInsuranceQuestion(text: string): boolean {
   const lower = text.toLowerCase()
-  return ['cover', 'covered', 'coverage', 'claim', 'liability', 'bop', 'policy', 'premium', 'deductible', 'insur'].some(kw => lower.includes(kw))
+  const normalized = lower.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim()
+
+  // Treat short yes/no-style claim responses as answers, not advisory questions.
+  if (
+    /^(yes|no)\b/.test(normalized) &&
+    /\bclaim(s)?\b/.test(normalized) &&
+    !normalized.includes('?')
+  ) {
+    return false
+  }
+
+  return ['cover', 'covered', 'coverage', 'claim', 'liability', 'bop', 'policy', 'premium', 'deductible', 'insur'].some(kw => normalized.includes(kw))
 }
 
 function buildDemoSystemPrompt(
