@@ -194,8 +194,9 @@ bot.on('message', async (ctx) => {
         `Your intake is complete. Your broker has been notified and will review your profile shortly.\n\n` +
         `If you have questions in the meantime, feel free to message here.`
       )
-      await markIntakeComplete(client.id)
     }
+
+    await markIntakeComplete(client.id)
   }
 })
 
