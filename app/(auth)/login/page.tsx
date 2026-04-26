@@ -66,7 +66,7 @@ export default async function LoginPage({
               type="password"
               required
               className="mt-1.5 block h-10 w-full rounded-md border border-slate-300 px-3 text-sm text-slate-950 outline-none transition focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
-              placeholder="Any password"
+              placeholder="Password"
             />
           </label>
 
