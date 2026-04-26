@@ -119,6 +119,18 @@ describe('dashboard dossier helpers', () => {
     assert.ok(bytes.length > 300)
   })
 
+  it('paginates long dossier exports so content does not run off the page', () => {
+    const bytes = createDossierPdfBytes([
+      'District Cover Broker Dossier',
+      ...Array.from({ length: 95 }, (_, index) => `Dossier line ${index + 1}: broker-ready evidence summary`),
+    ])
+    const pdf = Buffer.from(bytes).toString('utf8')
+
+    assert.match(pdf, /\/Count 3\b/)
+    assert.match(pdf, /\(Page 1 of 3\) Tj/)
+    assert.match(pdf, /\(Page 3 of 3\) Tj/)
+  })
+
   it('calculates a complete readiness score from the MVP demo intake answers', () => {
     const score = getDemoReadinessScore('client-1')
 
