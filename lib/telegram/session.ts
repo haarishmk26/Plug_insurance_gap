@@ -62,7 +62,6 @@ export async function saveExtractedFields(
     updates[col] = { ...current, ...grouped[col] }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await supabase.from('intake_data').upsert(updates as any)
 }
 
@@ -113,7 +112,6 @@ export async function saveAnswer(
 
   const currentSection = (existing?.[col as keyof typeof existing] ?? {}) as Record<string, unknown>
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await supabase.from('intake_data').upsert({
     client_id: clientId,
     [col]: { ...currentSection, [questionKey]: answer },
@@ -135,7 +133,6 @@ export async function getClientByToken(token: string): Promise<ClientWithIntake 
 // Associate the Telegram chat_id with the client on first /start
 export async function linkChatId(clientId: string, chatId: number) {
   const supabase = createRawServiceClient()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (supabase.from('clients') as any)
     .update({ telegram_chat_id: chatId, intake_status: 'in_progress' })
     .eq('id', clientId)
@@ -145,7 +142,6 @@ export async function linkChatId(clientId: string, chatId: number) {
 export async function markIntakeComplete(clientId: string) {
   const supabase = createRawServiceClient()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (supabase.from('clients') as any)
     .update({ intake_status: 'complete' })
     .eq('id', clientId)

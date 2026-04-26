@@ -77,7 +77,20 @@ Still needed for Telegram/local webhook work:
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_WEBHOOK_SECRET`
 - `NEXT_PUBLIC_APP_URL`
-- Telegram bot username
+
+MVP dashboard link behavior:
+
+- The broker dashboard intentionally displays a fixed Telegram link for the demo:
+  `https://t.me/Rova_district_bot?start=demo-test-token-123`
+- Per-client tokenized Telegram links are deferred until the next version.
+
+MVP demo intake behavior:
+
+- New dashboard clients are seeded with hard-coded ACORD A-E sample answers.
+- The sample answers calculate to a **95/100** readiness score.
+- The dossier explains what the score means and displays AI evidence reviews using realistic sample photos.
+- The dossier includes a cost reduction plan with suggested building improvements and projected 3-year savings.
+- Opening an older empty demo dossier also backfills the same sample answers and score so the demo always shows a completed review surface.
 
 ## Supabase Migration
 
