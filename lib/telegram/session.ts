@@ -63,7 +63,7 @@ export async function saveExtractedFields(
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await supabase.from('intake_data').upsert(updates as any)
+  await (supabase.from('intake_data') as any).update(updates).eq('client_id', clientId)
 }
 
 // Append turns to conversation_history in Supabase
@@ -79,9 +79,10 @@ export async function appendConversationHistory(
     .single()
 
   const current: ConversationTurn[] = (existing?.conversation_history as ConversationTurn[]) ?? []
-  await supabase
-    .from('intake_data')
-    .upsert({ client_id: clientId, conversation_history: [...current, ...newTurns] })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase.from('intake_data') as any)
+    .update({ conversation_history: [...current, ...newTurns] })
+    .eq('client_id', clientId)
 }
 
 // Load conversation history for Gemini context

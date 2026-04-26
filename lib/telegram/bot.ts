@@ -10,7 +10,7 @@ import {
   markIntakeComplete,
   flattenAnswers,
 } from './session'
-import { geminiChat } from './gemini'
+import { geminiChat, getNextDemoQuestion, isDemoComplete, isInsuranceQuestion, DEMO_INSURANCE_ANSWER } from './gemini'
 
 const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN!)
 
@@ -42,12 +42,15 @@ bot.command('start', async (ctx) => {
   await linkChatId(client.id, ctx.chat.id)
 
   const supabase = createRawServiceClient()
-  await supabase.from('intake_data').upsert({
-    client_id: client.id,
-    current_question_key: 'gemini_active' as string,
-  })
-
   const isDemoMode = client.intake_token.includes('demo')
+
+  if (isDemoMode) {
+    // Wipe any stale rows from previous demo runs so we always start fresh
+    await supabase.from('intake_data').delete().eq('client_id', client.id)
+    await supabase.from('intake_data').insert({ client_id: client.id, current_question_key: 'gemini_active' })
+  } else {
+    await supabase.from('intake_data').upsert({ client_id: client.id, current_question_key: 'gemini_active' as string })
+  }
 
   const greeting = isDemoMode
     ? `Hi ${client.owner_name}! 👋\n\n` +
@@ -64,23 +67,23 @@ bot.command('start', async (ctx) => {
   await ctx.reply(greeting)
 
   // Let Gemini open the conversation
-  const collected = flattenAnswers(
-    (client.intake_data?.[0] ?? { section_a: {}, section_b: {}, section_c: {}, section_d: {}, section_e: {} })
-  )
-  const gemini = await geminiChat(
-    '__start__',
-    client.owner_name,
-    client.business_name,
-    collected,
-    [],
-    isDemoMode
-  )
+  const emptyIntake = { section_a: {}, section_b: {}, section_c: {}, section_d: {}, section_e: {} }
+  const collected = flattenAnswers(client.intake_data?.[0] ?? emptyIntake)
 
-  await ctx.reply(gemini.message)
+  const gemini = await geminiChat('__start__', client.owner_name, client.business_name, collected, [], isDemoMode)
+
+  // In demo mode the LLM writes a greeting only — server appends the first question
+  let openingMessage = gemini.message
+  if (isDemoMode) {
+    const firstQuestion = getNextDemoQuestion(collected, {})
+    if (firstQuestion) openingMessage = openingMessage.trim() + '\n\n' + firstQuestion
+  }
+
+  await ctx.reply(openingMessage)
 
   await appendConversationHistory(client.id, [
     { role: 'user', text: '__start__' },
-    { role: 'model', text: gemini.message },
+    { role: 'model', text: openingMessage },
   ])
 
   if (Object.keys(gemini.fields).length > 0) {
@@ -98,7 +101,7 @@ bot.on('message', async (ctx) => {
 
   const { data: client } = await supabase
     .from('clients')
-    .select('*, intake_data(*)')
+    .select('*')
     .eq('telegram_chat_id', chatId)
     .single() as { data: ClientWithIntake | null; error: unknown }
 
@@ -107,17 +110,28 @@ bot.on('message', async (ctx) => {
     return
   }
 
+  const isDemoMode = client.intake_token.includes('demo')
+
   if (client.intake_status === 'complete') {
-    await ctx.reply("Your intake is already complete! Your broker will be in touch soon.")
+    if (isDemoMode && isInsuranceQuestion(ctx.message.text ?? '')) {
+      await ctx.reply(DEMO_INSURANCE_ANSWER)
+    } else {
+      await ctx.reply("Your broker has everything they need and will be in touch soon!")
+    }
     return
   }
 
-  const intakeData = Array.isArray(client.intake_data)
-    ? client.intake_data[0]
-    : client.intake_data
+  // Fetch the most recently updated intake_data row (upsert bugs can create multiple rows)
+  const { data: latestIntake } = await supabase
+    .from('intake_data')
+    .select('*')
+    .eq('client_id', client.id)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle() as { data: ClientWithIntake['intake_data'][0] | null; error: unknown }
 
   const emptySection = { section_a: {}, section_b: {}, section_c: {}, section_d: {}, section_e: {} }
-  const collected = flattenAnswers(intakeData ?? emptySection)
+  const collected = flattenAnswers(latestIntake ?? emptySection)
 
   // Handle photo/document uploads — store directly without going through Gemini
   const photoArray = ctx.message.photo
@@ -157,8 +171,22 @@ bot.on('message', async (ctx) => {
 
   // Text message — send to Gemini
   const userText = ctx.message.text ?? ''
+
+  // Demo mode: short-circuit for insurance questions — always return the hardcoded answer
+  if (isDemoMode && isInsuranceQuestion(userText)) {
+    const nextQuestion = getNextDemoQuestion(collected, {})
+    const reply = nextQuestion
+      ? DEMO_INSURANCE_ANSWER + '\n\n' + nextQuestion
+      : DEMO_INSURANCE_ANSWER
+    await appendConversationHistory(client.id, [
+      { role: 'user', text: userText },
+      { role: 'model', text: reply },
+    ])
+    await ctx.reply(reply)
+    return
+  }
+
   const history = await getConversationHistory(client.id)
-  const isDemoMode = client.intake_token.includes('demo')
 
   let gemini
   try {
@@ -181,15 +209,31 @@ bot.on('message', async (ctx) => {
     await saveExtractedFields(client.id, gemini.fields)
   }
 
+  // For demo mode: LLM writes ack only — server appends the deterministic next question
+  let replyMessage = gemini.message
+  if (isDemoMode && gemini.is_complete) {
+    replyMessage =
+      "Your insurance profile is all set! 🎉\n\n" +
+      "Your broker has everything they need — reach out to them and they'll get your policy started right away."
+  } else if (isDemoMode) {
+    const nextQuestion = getNextDemoQuestion(collected, gemini.fields)
+    if (nextQuestion) replyMessage = replyMessage.trim() + '\n\n' + nextQuestion
+  }
+
   await appendConversationHistory(client.id, [
     { role: 'user', text: userText },
-    { role: 'model', text: gemini.message },
+    { role: 'model', text: replyMessage },
   ])
 
-  await ctx.reply(gemini.message)
+  await ctx.reply(replyMessage)
 
   if (gemini.is_complete) {
-    if (!isDemoMode) {
+    if (isDemoMode) {
+      // Mark complete so subsequent messages get the "already complete" reply — no score fired
+      const sb = createRawServiceClient()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (sb.from('clients') as any).update({ intake_status: 'complete' }).eq('id', client.id)
+    } else {
       await ctx.reply(
         `That's everything, ${client.owner_name}! 🎉\n\n` +
         `Your intake is complete. Your broker has been notified and will review your profile shortly.\n\n` +
