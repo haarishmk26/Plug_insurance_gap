@@ -2,6 +2,16 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
 import {
+  COST_REDUCTION_ACTIONS,
+  SAVINGS_HORIZON_YEARS,
+  projectedNetSavings,
+  totalImplementationCost,
+  totalProjectedGrossSavings,
+  totalProjectedNetSavings,
+} from '../../lib/dashboard/cost-reduction-plan.js'
+import { AI_EVIDENCE_REVIEWS, getDemoReadinessScore } from '../../lib/dashboard/demo-intake.js'
+import { NON_ACORD_PRIVATE_DATA_ITEMS } from '../../lib/dashboard/non-acord-data.js'
+import {
   buildTelegramLink,
   collectSectionEntries,
   countClientStatuses,
@@ -28,10 +38,10 @@ function client(overrides: Partial<Client> = {}): Client {
 }
 
 describe('dashboard dossier helpers', () => {
-  it('builds Telegram links with the configured bot username', () => {
+  it('uses the fixed MVP Telegram bot link while tokenized links are deferred', () => {
     assert.equal(
       buildTelegramLink('abc-123', 'DistrictCoverBot'),
-      'https://t.me/DistrictCoverBot?start=abc-123',
+      'https://t.me/Rova_district_bot?start=demo-test-token-123',
     )
   })
 
@@ -107,5 +117,59 @@ describe('dashboard dossier helpers', () => {
 
     assert.equal(Buffer.from(bytes.subarray(0, 5)).toString('utf8'), '%PDF-')
     assert.ok(bytes.length > 300)
+  })
+
+  it('calculates a complete readiness score from the MVP demo intake answers', () => {
+    const score = getDemoReadinessScore('client-1')
+
+    assert.equal(score.total_score, 95)
+    assert.equal(score.documentation_score, 25)
+    assert.equal(score.safety_score, 25)
+    assert.equal(score.property_score, 20)
+    assert.equal(score.claims_score, 20)
+    assert.equal(score.neighborhood_score, 5)
+  })
+
+  it('defines sample AI-reviewed evidence for the MVP dossier', () => {
+    assert.equal(AI_EVIDENCE_REVIEWS.length, 4)
+    assert.deepEqual(
+      AI_EVIDENCE_REVIEWS.map((review) => review.label),
+      ['Electrical panel photo', 'Fire extinguisher photo', 'Sprinkler head photo', 'Alarm panel photo'],
+    )
+    assert.ok(AI_EVIDENCE_REVIEWS.every((review) => review.imagePath.startsWith('/evidence/')))
+    assert.ok(AI_EVIDENCE_REVIEWS.every((review) => review.aiResult.startsWith('AI read:')))
+    assert.ok(AI_EVIDENCE_REVIEWS.every((review) => review.sourceUrl.startsWith('https://commons.wikimedia.org/')))
+  })
+
+  it('explains every private non-ACORD data item across coverage, cost, and business value', () => {
+    assert.deepEqual(
+      NON_ACORD_PRIVATE_DATA_ITEMS.map((item) => item.label),
+      [
+        'Roof age and inspection report',
+        'Electrical panel details and photo',
+        'Sprinkler system and inspection certificate',
+        'Alarm system and monitoring contract',
+        'Fire extinguisher evidence',
+      ],
+    )
+    assert.ok(NON_ACORD_PRIVATE_DATA_ITEMS.every((item) => item.coverageUse && item.costUse && item.businessHelp))
+  })
+
+  it('builds a cost reduction plan with projected multi-year savings', () => {
+    assert.equal(SAVINGS_HORIZON_YEARS, 3)
+    assert.deepEqual(
+      COST_REDUCTION_ACTIONS.map((action) => action.label),
+      [
+        'Get a current roof inspection letter',
+        'Document electrical panel maintenance',
+        'Refresh sprinkler inspection certificate',
+        'Keep alarm monitoring active',
+        'Service and photograph extinguisher tags',
+      ],
+    )
+    assert.equal(projectedNetSavings(COST_REDUCTION_ACTIONS[0]), 610)
+    assert.equal(totalImplementationCost(), 3040)
+    assert.equal(totalProjectedGrossSavings(), 5940)
+    assert.equal(totalProjectedNetSavings(), 2900)
   })
 })

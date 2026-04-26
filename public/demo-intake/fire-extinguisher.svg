@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Demo fire extinguisher tag photo</title>
+  <desc id="desc">A mounted fire extinguisher with an inspection tag used as sample evidence for the demo.</desc>
+  <rect width="640" height="360" fill="#eef2f7"/>
+  <rect x="72" y="28" width="496" height="304" rx="18" fill="#f8fafc"/>
+  <rect x="110" y="64" width="420" height="236" rx="12" fill="#e2e8f0"/>
+  <rect x="246" y="86" width="102" height="184" rx="42" fill="#dc2626"/>
+  <rect x="268" y="62" width="58" height="38" rx="12" fill="#991b1b"/>
+  <rect x="258" y="120" width="78" height="42" rx="6" fill="#fee2e2"/>
+  <rect x="291" y="52" width="68" height="10" rx="5" fill="#475569"/>
+  <path d="M362 96c50 16 65 64 33 100" fill="none" stroke="#475569" stroke-width="12" stroke-linecap="round"/>
+  <rect x="374" y="199" width="76" height="88" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="4"/>
+  <line x1="390" y1="220" x2="434" y2="220" stroke="#92400e" stroke-width="4" stroke-linecap="round"/>
+  <line x1="390" y1="241" x2="434" y2="241" stroke="#92400e" stroke-width="4" stroke-linecap="round"/>
+  <line x1="390" y1="262" x2="420" y2="262" stroke="#92400e" stroke-width="4" stroke-linecap="round"/>
+  <text x="297" y="148" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#991b1b">2026</text>
+  <text x="320" y="338" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#334155">AI sample: extinguisher inspection tag</text>
+</svg>

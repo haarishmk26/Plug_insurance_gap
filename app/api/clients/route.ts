@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 
 import { NextResponse } from 'next/server'
 
+import { seedDemoIntakeCompletion } from '@/lib/dashboard/demo-intake'
 import { buildTelegramLink } from '@/lib/dashboard/dossier'
 import { getDemoBrokerClientInsert, upsertDemoBroker } from '@/lib/supabase/demo-broker'
 import { createServiceClient } from '@/lib/supabase/server'
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
     owner_name: ownerName.trim(),
     owner_contact: ownerContact?.trim() || null,
     intake_token: intakeToken,
-    intake_status: 'pending',
+    intake_status: 'complete',
   })
 
   const { data: client, error: clientError } = await supabase
@@ -43,21 +44,12 @@ export async function POST(request: Request) {
     )
   }
 
-  const { error: intakeError } = await supabase.from('intake_data').insert({
-    client_id: client.id,
-  })
-
-  if (intakeError) {
-    return NextResponse.json({ error: intakeError.message }, { status: 500 })
-  }
+  const demo = await seedDemoIntakeCompletion(supabase, client)
 
   return NextResponse.json(
     {
-      ...client,
-      telegramLink: buildTelegramLink(
-        client.intake_token,
-        process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? 'DistrictCoverBot',
-      ),
+      ...demo.client,
+      telegramLink: buildTelegramLink(demo.client.intake_token),
     },
     { status: 201 },
   )

@@ -152,9 +152,10 @@ This is what the product is actually about, ranked by impact:
 1. Broker logs into web dashboard
 2. Broker clicks "New Client"
 3. Broker fills in: Business name, owner name, owner contact info
-4. Dashboard generates a unique Telegram deep link
-   → Format: t.me/DistrictCoverBot?start={unique_token}
-   → Token ties conversation to broker account + client record
+4. Dashboard shows the MVP Telegram deep link
+   → MVP fixed link: https://t.me/Rova_district_bot?start=demo-test-token-123
+   → Future version restores unique per-client links: t.me/Rova_district_bot?start={unique_token}
+   → Token will tie conversation to broker account + client record after MVP
 5. Broker copies link and sends to business owner
    (via text, email, WhatsApp — broker's choice, outside the platform)
 6. Business owner clicks link → Telegram opens
@@ -167,6 +168,8 @@ This is what the product is actually about, ranked by impact:
 13. Broker exports ACORD-aligned package and submits
 14. Broker updates submission status in dashboard
 ```
+
+**MVP demo shortcut:** For the hackathon MVP, clicking through Telegram intake is simulated. New clients are seeded with a complete hard-coded ACORD A-E answer set, realistic sample evidence photos, AI-read results, a readiness score of **95/100**, and a projected cost-reduction action plan. The dashboard can immediately show the completed dossier, explain the non-ACORD private evidence, and show estimated multi-year savings from practical building improvements. The real Telegram-driven per-client answer collection and AI image evaluation pipeline is the next-version path.
 
 ---
 
@@ -210,6 +213,7 @@ The implementing agent should pull relevant statistics from these sources and em
 2. Bot explains each sub-score in plain English
 3. Bot sends prioritized action checklist
    → Each item: what it is, why it matters, how to complete it, estimated impact
+   → For private building improvements, show projected savings after a fixed horizon (MVP uses 3 years)
 4. Owner can message bot to mark items as complete
 5. Score updates in real time as items are completed and verified
 6. Owner can check their score and checklist at any time:
@@ -276,7 +280,7 @@ Intake Complete → Broker Reviewed → Submitted to MGA → Quote Received → 
 - Owner uploads photo (fire extinguisher, electrical panel, security camera, etc.)
 - Claude Vision analyzes the image and confirms: what is present, any visible issues, whether the tag/date is readable
 - Bot responds confirming verification or requests a better photo
-- Verified items automatically update the readiness score
+- Verified items automatically update the readiness score and cost-reduction action plan
 
 ---
 
@@ -290,7 +294,7 @@ Intake Complete → Broker Reviewed → Submitted to MGA → Quote Received → 
 | View | Description | Phase |
 |---|---|---|
 | ⚠️ Client List | All clients, readiness score, current pipeline stage | 1 |
-| ⚠️ New Client | Form: add client + generate Telegram deep link | 1 |
+| ⚠️ New Client | Form: add client + show fixed MVP Telegram deep link | 1 |
 | ⚠️ Client Detail | Full dossier: ACORD fields, documents, score breakdown, checklist | 1 |
 | ⚠️ Export | Generate PDF broker export package per client | 1 |
 | ⚠️ Pipeline / Kanban | All clients across submission lifecycle stages | 2 |
@@ -301,7 +305,7 @@ Intake Complete → Broker Reviewed → Submitted to MGA → Quote Received → 
 
 | Action | Phase |
 |---|---|
-| ⚠️ Create new client → generate Telegram link | 1 |
+| ⚠️ Create new client → show fixed MVP Telegram link | 1 |
 | ⚠️ View client dossier (ACORD fields + uploads + score) | 1 |
 | ⚠️ Export ACORD-aligned PDF | 1 |
 | ⚠️ Advance submission pipeline stage manually | 2 |
@@ -562,6 +566,7 @@ What the broker generates and submits to District Cover (or another MGA):
 |---|---|---|
 | ⚠️ Pre-filled ACORD 125 fields | All sections A–E, mapped to correct form fields | 1 |
 | ⚠️ Insurance Readiness Score | Overall + sub-scores with plain-English explanations | 1 |
+| ⚠️ Cost Reduction Plan | Suggested building fixes with projected 3-year savings from private evidence | 1 |
 | ⚠️ Uploaded documents | Organized and labeled: inspection reports, contracts, photos | 1 |
 | ⚠️ Loss history table | Formatted per ACORD 125 Page 4 | 1 |
 | ⚠️ Proximate risk statement | Auto-generated if SF data shows nearby incident with documented mitigations | 2 |
@@ -588,8 +593,9 @@ What the broker generates and submits to District Cover (or another MGA):
 - [ ] Bot walks through Sections A–E conversationally, one question at a time
 - [ ] Bot accepts photo and PDF uploads, labels and stores them
 - [ ] Session persistence — owner can exit and resume
-- [ ] Broker dashboard: demo login accepts any email/password, client list, new client form, Telegram deep link generation
+- [ ] Broker dashboard: demo login accepts any email/password, client list, new client form, fixed MVP Telegram link display/copy
 - [ ] Broker dashboard: client detail view with all ACORD fields and uploaded documents
+- [ ] MVP demo mode: hard-coded ACORD A-E answers seed a completed dossier and 95/100 readiness score
 - [ ] Score engine: calculates 5-dimension score from intake data (Sections A–E, no SF public data yet)
 - [ ] Score visible in broker dashboard
 - [ ] PDF export: ACORD field summary + uploaded documents + score
@@ -602,7 +608,7 @@ Phase 1 should be built as three equal workstreams with clean interfaces between
 | Owner | Workstream | Phase 1 Responsibility | Primary Deliverables |
 |---|---|---|---|
 | **Khem** | Telegram intake bot | Own the business-owner intake experience end to end. This includes unique deep link handling, resumable Telegram sessions, ACORD Sections A–E question flow, photo/PDF collection, upload labeling, and the "intake complete" handoff event. | `app/api/telegram/route.ts`, `lib/telegram/bot.ts`, `lib/telegram/questions.ts`, `lib/telegram/session.ts`, bot-facing upload handling |
-| **Pratik** | Broker dashboard + export | Own the broker-facing review experience. This includes demo login/dashboard shell, client list, new client form, Telegram link display/copy flow, client dossier view, readiness score display, upload list display, and Phase 1 PDF export. Demo login accepts any email/password for hackathon speed. | `app/(auth)`, `app/(dashboard)`, dashboard components, `app/api/export/[clientId]/route.ts`, `lib/pdf/dossier-pdf.tsx` |
+| **Pratik** | Broker dashboard + export | Own the broker-facing review experience. This includes demo login/dashboard shell, client list, new client form, fixed MVP Telegram link display/copy flow, client dossier view, readiness score display, upload list display, and Phase 1 PDF export. Demo login accepts any email/password for hackathon speed. | `app/(auth)`, `app/(dashboard)`, dashboard components, `app/api/export/[clientId]/route.ts`, `lib/pdf/dossier-pdf.tsx` |
 | **Haarish** | Shared platform, data model, scoring, integration QA | Own the shared product backbone used by both other workstreams. This includes Supabase schema/storage setup, generated/shared DB types, ACORD field contract, readiness score engine, intake completion contract, broker notification contract, final PRD/plan alignment, and end-to-end acceptance testing. Production auth/RLS tightening is Phase 2+. | `supabase/migrations`, `lib/supabase`, `lib/score/engine.ts`, shared field/contract docs, final integration QA |
 
 **Phase 1 Auth Decision:**
@@ -685,7 +691,7 @@ Phase 1 should be built as three equal workstreams with clean interfaces between
 
 | Decision | Resolution | Date |
 |---|---|---|
-| Who initiates the intake flow? | Broker generates unique Telegram deep link from dashboard; business completes via bot | Apr 2026 |
+| Who initiates the intake flow? | Broker starts intake from dashboard. MVP displays fixed link `https://t.me/Rova_district_bot?start=demo-test-token-123`; post-MVP restores unique per-client links. | Apr 2026 |
 | Does the broker get cut out? | No. Broker reviews and submits. Product makes them faster. | Apr 2026 |
 | Language support | English only | Apr 2026 |
 | Broker portal type | Web dashboard (broker logs in) | Apr 2026 |

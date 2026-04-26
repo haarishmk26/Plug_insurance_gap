@@ -17,7 +17,7 @@ Phase 1 replaces the broker's manual commercial insurance intake call with a Tel
 | Owner | Workstream | Boundary | Done When |
 |---|---|---|---|
 | **Khem** | Telegram intake bot | Business-owner chat experience, intake sequencing, upload capture, resumable sessions | A business owner can open the deep link, complete ACORD Sections A–E, upload required photos/PDFs, resume after leaving, and trigger intake completion. |
-| **Pratik** | Broker dashboard + export | Broker-facing UI, demo login, client creation, dossier review, PDF export | A demo broker can enter any email/password, create a client, copy the Telegram link, view a completed dossier with score/uploads, and export the Phase 1 PDF package. |
+| **Pratik** | Broker dashboard + export | Broker-facing UI, demo login, client creation, dossier review, PDF export | A demo broker can enter any email/password, create a client, copy the fixed MVP Telegram link, view a completed dossier with score/uploads, and export the Phase 1 PDF package. |
 | **Haarish** | Shared platform, scoring, contracts, QA | Supabase schema, shared types, score engine, integration contracts, acceptance test path | Bot and dashboard use the same persisted contract; scores calculate from intake data; final demo flow passes end to end. Production auth/RLS tightening is deferred. |
 
 The split is intentionally equal by product responsibility, not by number of files. Khem owns the highest-risk external interaction surface, Pratik owns the broker workflow and export, and Haarish owns the data/scoring backbone plus integration quality.
@@ -41,6 +41,11 @@ The split is intentionally equal by product responsibility, not by number of fil
 - Next.js dashboard/bot surfaces from Pratik and Khem.
 - Final end-to-end QA after bot/dashboard integration.
 
+**MVP demo shortcut:**
+- For the hackathon demo, the dashboard seeds hard-coded ACORD A-E answers and a **95/100** readiness score when a client is created or when an older empty demo dossier is opened.
+- This simulates a completed Telegram intake so reviewers can see the dossier, score explanation, realistic AI-reviewed sample photos, non-ACORD private evidence explanation, and projected cost-reduction plan immediately.
+- Post-MVP, the Telegram bot should write the actual per-client answers, store real uploads, and trigger score calculation through the normal completion handoff.
+
 **Phase 1 auth decision:**
 - The broker dashboard uses permissive demo login. Any email/password should allow entry.
 - This is intentionally not production authentication.
@@ -52,7 +57,8 @@ The split is intentionally equal by product responsibility, not by number of fil
 ## Khem — Telegram Intake Bot
 
 **Owned Phase 1 requirements:**
-- Accept `t.me/DistrictCoverBot?start={unique_token}` and load the matching client.
+- MVP accepts `https://t.me/Rova_district_bot?start=demo-test-token-123` for the hackathon demo.
+- Post-MVP accepts `t.me/Rova_district_bot?start={unique_token}` and loads the matching client.
 - Greet the business owner by name and explain the intake in plain English.
 - Ask ACORD Sections A–E one question at a time.
 - Persist each answer as it is received.
@@ -92,9 +98,10 @@ The split is intentionally equal by product responsibility, not by number of fil
 - Permissive demo login that accepts any email/password.
 - Dashboard route gate based on local demo session state, not production Supabase Auth.
 - Client list with business name, owner, intake status, readiness score, and updated timestamp.
-- New client form that creates a client and generates the unique Telegram link.
-- Copy/display flow for the Telegram deep link.
-- Client detail dossier showing ACORD sections, uploads, and readiness score.
+- New client form that creates a client and shows the fixed MVP Telegram link.
+- MVP copy/display flow for the fixed Telegram deep link: `https://t.me/Rova_district_bot?start=demo-test-token-123`.
+- Future post-MVP copy/display flow restores per-client tokenized links.
+- Client detail dossier showing ACORD sections, uploads, readiness score, and cost reduction plan.
 - PDF export containing ACORD field summary, upload list, loss history, and score details.
 
 **Primary files:**
@@ -121,10 +128,12 @@ The split is intentionally equal by product responsibility, not by number of fil
 **Acceptance checks:**
 - Any email/password combination enters the broker dashboard in Phase 1.
 - Broker can create a new client without using the database dashboard manually.
-- The generated Telegram link includes the unique client token.
+- The displayed MVP Telegram link is `https://t.me/Rova_district_bot?start=demo-test-token-123`.
+- Post-MVP, the generated Telegram link should include the unique client token.
 - Client list separates pending, in-progress, and complete intake states.
 - Client detail loads all persisted ACORD sections and uploads.
 - PDF export downloads and includes client identity, ACORD summary, uploads list, and readiness score.
+- MVP demo dossier shows the hard-coded completed intake answers, 95/100 readiness score, and projected 3-year savings plan.
 
 ---
 

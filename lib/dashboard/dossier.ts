@@ -68,6 +68,8 @@ export const SCORE_DIMENSIONS = [
   { key: 'neighborhood_score', label: 'Neighborhood', max: 10 },
 ] as const
 
+export const MVP_TELEGRAM_LINK = 'https://t.me/Rova_district_bot?start=demo-test-token-123' as const
+
 export type StatusCounts = Record<Client['intake_status'], number>
 
 export interface SectionEntry {
@@ -81,8 +83,8 @@ export interface UploadGroup {
   uploads: Upload[]
 }
 
-export function buildTelegramLink(token: string, botUsername = 'DistrictCoverBot'): string {
-  return `https://t.me/${botUsername}?start=${encodeURIComponent(token)}`
+export function buildTelegramLink(_token: string, _botUsername = 'DistrictCoverBot'): string {
+  return MVP_TELEGRAM_LINK
 }
 
 export function countClientStatuses(clients: Pick<Client, 'intake_status'>[]): StatusCounts {
