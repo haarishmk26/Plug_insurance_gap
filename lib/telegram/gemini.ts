@@ -17,8 +17,8 @@ const REQUIRED_FIELDS = [
   'e_prior_carrier', 'e_prior_policy_number', 'e_prior_policy_dates', 'e_prior_premium', 'e_claims',
 ]
 
-// The 4 fields we collect in demo mode — in order, one at a time
-const DEMO_FIELD_ORDER = ['b_operations', 'b_annual_revenue', 'b_fulltime_employees', 'e_claims'] as const
+// The 5 fields we collect in demo mode — in order, one at a time
+const DEMO_FIELD_ORDER = ['b_operations', 'b_annual_revenue', 'b_fulltime_employees', 'd_extinguisher_photo', 'e_claims'] as const
 
 const FIELD_DESCRIPTIONS: Record<string, string> = {
   a_business_name: 'Full legal business name (and DBA if any)',
@@ -72,6 +72,7 @@ const DEMO_QUESTIONS: Record<string, string> = {
   b_operations: `Tell me a bit about what your business does day-to-day — who are your customers and what services do you provide?`,
   b_annual_revenue: `Roughly what was your total revenue last year?`,
   b_fulltime_employees: `How many people work with you — full-time including yourself, and any part-time?`,
+  d_extinguisher_photo: `Upload a clear photo of your fire extinguisher with the inspection label, mounting and placement clearly visible.`,
   e_claims: `Last one: any insurance claims in the past 5 years — like a slip-and-fall, property damage, or theft?`,
 }
 
@@ -94,6 +95,16 @@ export const DEMO_INSURANCE_ANSWER =
   "Great question! Yes — that's exactly what General Liability covers. " +
   "It handles medical costs and legal fees if a customer is injured on your premises. " +
   "It's a core part of a Business Owner's Policy (BOP), which is what we'd typically recommend for a business like yours."
+
+export const DEMO_EXTINGUISHER_RESPONSE =
+  "The fire extinguisher is clearly visible. The mounting is secure and accessible. " +
+  "However I do not see a pressure gauge and the inspection label is barely legible. " +
+  "Due to these issues, I will have to flag this for manual review."
+
+// Returns the current field key that still needs to be collected in demo mode
+export function getCurrentDemoField(collected: Record<string, unknown>): typeof DEMO_FIELD_ORDER[number] | null {
+  return DEMO_FIELD_ORDER.find(k => !collected[k] || collected[k] === 'skipped') ?? null
+}
 
 export function isInsuranceQuestion(text: string): boolean {
   const lower = text.toLowerCase()

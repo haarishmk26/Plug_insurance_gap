@@ -10,7 +10,7 @@ import {
   markIntakeComplete,
   flattenAnswers,
 } from './session'
-import { geminiChat, getNextDemoQuestion, isDemoComplete, isInsuranceQuestion, DEMO_INSURANCE_ANSWER } from './gemini'
+import { geminiChat, getNextDemoQuestion, getCurrentDemoField, isDemoComplete, isInsuranceQuestion, DEMO_INSURANCE_ANSWER, DEMO_EXTINGUISHER_RESPONSE } from './gemini'
 
 const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN!)
 
@@ -164,6 +164,22 @@ bot.on('message', async (ctx) => {
       label: photoArray ? 'Photo upload' : 'Document upload',
       telegram_file_id: fileId,
     })
+
+    // Demo mode: hardcoded fire extinguisher photo analysis
+    if (isDemoMode && photoArray && getCurrentDemoField(collected) === 'd_extinguisher_photo') {
+      await saveExtractedFields(client.id, { d_extinguisher_photo: 'uploaded' })
+      const updatedCollected = { ...collected, d_extinguisher_photo: 'uploaded' }
+      const nextQuestion = getNextDemoQuestion(updatedCollected, {})
+      const response = nextQuestion
+        ? DEMO_EXTINGUISHER_RESPONSE + '\n\n' + nextQuestion
+        : DEMO_EXTINGUISHER_RESPONSE
+      await appendConversationHistory(client.id, [
+        { role: 'user', text: '[photo upload]' },
+        { role: 'model', text: response },
+      ])
+      await ctx.reply(response)
+      return
+    }
 
     await ctx.reply("Got it — I've saved that file. ✅ You can continue answering questions or send more files.")
     return
