@@ -63,8 +63,8 @@ export function CostReductionPlanButton() {
               </div>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
                 Based on the private building evidence and the current {money(PREMIUM_BASELINE)} prior premium, this
-                plan shows practical fixes to discuss with the broker. Savings are planning estimates, not guaranteed
-                carrier credits.
+                plan turns readiness signals into practical actions for broker review. Savings are planning estimates,
+                not guaranteed carrier credits or a scoring formula.
               </p>
             </div>
 
@@ -96,11 +96,15 @@ export function CostReductionPlanButton() {
                     </div>
                     <div className="grid gap-3 md:grid-cols-2">
                       <div>
-                        <p className="text-xs font-semibold uppercase text-slate-400">Recommended change</p>
+                        <p className="text-xs font-semibold uppercase text-slate-400">Qualification focus</p>
+                        <p className="mt-1 text-sm leading-6 text-slate-700">{action.qualificationFocus}</p>
+                        <p className="mt-3 text-xs font-semibold uppercase text-slate-400">Recommended change</p>
                         <p className="mt-1 text-sm leading-6 text-slate-700">{action.recommendation}</p>
                       </div>
                       <div>
-                        <p className="text-xs font-semibold uppercase text-slate-400">Why it can lower cost</p>
+                        <p className="text-xs font-semibold uppercase text-slate-400">Broker positioning</p>
+                        <p className="mt-1 text-sm leading-6 text-slate-700">{action.brokerPositioning}</p>
+                        <p className="mt-3 text-xs font-semibold uppercase text-slate-400">Why it can lower cost</p>
                         <p className="mt-1 text-sm leading-6 text-slate-700">{action.reason}</p>
                       </div>
                     </div>
@@ -125,4 +129,3 @@ export function CostReductionPlanButton() {
     </>
   )
 }
-

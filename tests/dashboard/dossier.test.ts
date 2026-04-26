@@ -153,6 +153,14 @@ describe('dashboard dossier helpers', () => {
       ],
     )
     assert.ok(NON_ACORD_PRIVATE_DATA_ITEMS.every((item) => item.coverageUse && item.costUse && item.businessHelp))
+    assert.ok(NON_ACORD_PRIVATE_DATA_ITEMS.every((item) => item.qualificationSignal && item.brokerUse && item.ownerValue))
+    assert.ok(
+      NON_ACORD_PRIVATE_DATA_ITEMS.every((item) => {
+        const copy = `${item.qualificationSignal} ${item.brokerUse} ${item.ownerValue}`.toLowerCase()
+
+        return !copy.includes('points') && !copy.includes('formula') && !copy.includes('score calculation')
+      }),
+    )
   })
 
   it('builds a cost reduction plan with projected multi-year savings', () => {
@@ -171,5 +179,6 @@ describe('dashboard dossier helpers', () => {
     assert.equal(totalImplementationCost(), 3040)
     assert.equal(totalProjectedGrossSavings(), 5940)
     assert.equal(totalProjectedNetSavings(), 2900)
+    assert.ok(COST_REDUCTION_ACTIONS.every((action) => action.qualificationFocus && action.brokerPositioning))
   })
 })

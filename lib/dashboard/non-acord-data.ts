@@ -2,13 +2,20 @@ export const NON_ACORD_PRIVATE_DATA_ITEMS = [
   {
     label: 'Roof age and inspection report',
     collected: 'Roof age, roof condition notes, and any recent inspection report supplied by the business.',
-    coverageUse: 'Helps the broker show carriers that the building is not being rated only from age or ZIP-level assumptions.',
-    costUse: 'A recent clean inspection can reduce worst-case property assumptions and avoid avoidable premium load.',
+    qualificationSignal:
+      'Shows whether roof condition is documented well enough for property carriers to review the building on its actual condition.',
+    brokerUse: 'Helps the broker separate a maintained roof from generic age or ZIP-code assumptions during placement.',
+    ownerValue: 'If the roof is holding up approval or pricing, the next step is clear: provide a current inspection or repair note.',
+    coverageUse: 'Supports coverage review by proving the roof condition instead of relying on assumptions.',
+    costUse: 'Can reduce uncertainty that otherwise turns into higher property pricing.',
     businessHelp: 'Gives the owner a clear fix if the roof is the blocker: get a current inspection or repair note.',
   },
   {
     label: 'Electrical panel details and photo',
     collected: 'Panel capacity, breaker type, upgrade year, and a photo of the electrical panel.',
+    qualificationSignal: 'Confirms whether the electrical system has enough proof for fire-risk review.',
+    brokerUse: 'Lets the broker answer basic building-condition questions before an underwriter has to ask for more evidence.',
+    ownerValue: 'Turns a vague electrical concern into either a document request or a practical maintenance/upgrade action.',
     coverageUse: 'Helps underwriters verify that wiring risk is understood before quoting property or liability coverage.',
     costUse: 'Documented modern electrical systems can lower uncertainty, which is where small businesses often get penalized.',
     businessHelp: 'Turns a vague underwriting concern into a concrete item the owner can document or upgrade.',
@@ -16,6 +23,9 @@ export const NON_ACORD_PRIVATE_DATA_ITEMS = [
   {
     label: 'Sprinkler system and inspection certificate',
     collected: 'Whether sprinklers are present plus a current inspection certificate or supporting photo.',
+    qualificationSignal: 'Shows whether fire-suppression evidence is strong enough to support property coverage review.',
+    brokerUse: 'Gives the broker a clean way to show active loss-control measures instead of letting neighborhood risk dominate.',
+    ownerValue: 'Makes the highest-impact safety document obvious before the submission goes out.',
     coverageUse: 'Shows fire-loss mitigation, which can help a broker argue for coverage even in higher-risk neighborhoods.',
     costUse: 'Verified sprinklers can support better property terms because they reduce expected loss severity.',
     businessHelp: 'Makes the highest-impact safety document obvious before the submission goes out.',
@@ -23,6 +33,9 @@ export const NON_ACORD_PRIVATE_DATA_ITEMS = [
   {
     label: 'Alarm system and monitoring contract',
     collected: 'Alarm presence, monitoring status, and proof such as a contract or alarm-panel photo.',
+    qualificationSignal: 'Shows whether theft and after-hours premises controls are documented for carrier review.',
+    brokerUse: 'Helps position the business as actively monitored, not simply located in a riskier area.',
+    ownerValue: 'Explains why keeping monitoring active can matter for insurance, not just security.',
     coverageUse: 'Gives carriers evidence that theft and after-hours incident risk is actively managed.',
     costUse: 'A monitored alarm can support credits or avoid surcharges tied to burglary and premises risk.',
     businessHelp: 'Helps the owner understand why keeping monitoring active matters for insurance, not just security.',
@@ -30,9 +43,11 @@ export const NON_ACORD_PRIVATE_DATA_ITEMS = [
   {
     label: 'Fire extinguisher evidence',
     collected: 'Photos or records showing extinguishers are present, mounted, and inspected.',
+    qualificationSignal: 'Confirms whether basic fire-safety controls are visible, current, and easy to verify.',
+    brokerUse: 'Adds simple safety proof to the dossier so the submission feels complete and inspection-ready.',
+    ownerValue: 'Creates an easy checklist item: inspect, tag, photograph, and keep the record current.',
     coverageUse: 'Supports a safer premises narrative when the broker packages the submission.',
     costUse: 'Small safety proofs reduce ambiguity and can prevent a carrier from assuming weak controls.',
     businessHelp: 'Creates an easy checklist item: inspect, tag, photograph, and keep the record current.',
   },
 ] as const
-

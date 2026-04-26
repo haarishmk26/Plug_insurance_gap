@@ -43,23 +43,24 @@ export function NonAcordDataButton() {
                 </button>
               </div>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-                These are business-supplied private signals that do not live cleanly on ACORD 125. They help the broker
-                prove risk controls, explain the score, and package the business for better carrier review.
+                These are business-supplied private signals that do not live cleanly on ACORD 125. They show the
+                criteria a carrier can use to approve coverage, improve terms, or ask for a specific fix without
+                exposing the internal score calculation.
               </p>
             </div>
 
             <div className="grid border-b border-slate-100 sm:grid-cols-3">
               <div className="px-5 py-4 sm:px-6">
-                <p className="text-xs font-semibold uppercase text-slate-400">Coverage</p>
-                <p className="mt-1 text-sm leading-6 text-slate-700">Converts hidden improvements into underwriter evidence.</p>
+                <p className="text-xs font-semibold uppercase text-slate-400">Qualify</p>
+                <p className="mt-1 text-sm leading-6 text-slate-700">Shows whether the business has evidence carriers expect.</p>
               </div>
               <div className="border-t border-slate-100 px-5 py-4 sm:border-l sm:border-t-0 sm:px-6">
-                <p className="text-xs font-semibold uppercase text-slate-400">Cost</p>
-                <p className="mt-1 text-sm leading-6 text-slate-700">Reduces uncertainty that can become premium load or decline logic.</p>
+                <p className="text-xs font-semibold uppercase text-slate-400">Broker use</p>
+                <p className="mt-1 text-sm leading-6 text-slate-700">Turns private proof into a cleaner carrier submission.</p>
               </div>
               <div className="border-t border-slate-100 px-5 py-4 sm:border-l sm:border-t-0 sm:px-6">
-                <p className="text-xs font-semibold uppercase text-slate-400">Business</p>
-                <p className="mt-1 text-sm leading-6 text-slate-700">Turns vague insurance feedback into concrete fixes.</p>
+                <p className="text-xs font-semibold uppercase text-slate-400">Owner value</p>
+                <p className="mt-1 text-sm leading-6 text-slate-700">Makes coverage blockers and cost levers easier to act on.</p>
               </div>
             </div>
 
@@ -73,16 +74,16 @@ export function NonAcordDataButton() {
                     </div>
                     <div className="grid gap-3 md:grid-cols-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase text-slate-400">Get coverage</p>
-                        <p className="mt-1 text-sm leading-6 text-slate-700">{item.coverageUse}</p>
+                        <p className="text-xs font-semibold uppercase text-slate-400">Qualification signal</p>
+                        <p className="mt-1 text-sm leading-6 text-slate-700">{item.qualificationSignal}</p>
                       </div>
                       <div>
-                        <p className="text-xs font-semibold uppercase text-slate-400">Reduce cost</p>
-                        <p className="mt-1 text-sm leading-6 text-slate-700">{item.costUse}</p>
+                        <p className="text-xs font-semibold uppercase text-slate-400">Broker use</p>
+                        <p className="mt-1 text-sm leading-6 text-slate-700">{item.brokerUse}</p>
                       </div>
                       <div>
-                        <p className="text-xs font-semibold uppercase text-slate-400">Help business</p>
-                        <p className="mt-1 text-sm leading-6 text-slate-700">{item.businessHelp}</p>
+                        <p className="text-xs font-semibold uppercase text-slate-400">Owner value</p>
+                        <p className="mt-1 text-sm leading-6 text-slate-700">{item.ownerValue}</p>
                       </div>
                     </div>
                   </div>
@@ -95,4 +96,3 @@ export function NonAcordDataButton() {
     </>
   )
 }
-
